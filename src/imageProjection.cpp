@@ -14,6 +14,7 @@ POINT_CLOUD_REGISTER_POINT_STRUCT (VelodynePointXYZIRT,
     (uint16_t, ring, ring) (float, time, time)
 )
 
+
 struct OusterPointXYZIRT {
     PCL_ADD_POINT4D;
     float intensity;
@@ -28,6 +29,19 @@ POINT_CLOUD_REGISTER_POINT_STRUCT(OusterPointXYZIRT,
     (float, x, x) (float, y, y) (float, z, z) (float, intensity, intensity)
     (uint32_t, t, t) (uint16_t, reflectivity, reflectivity)
     (uint8_t, ring, ring) (uint16_t, noise, noise) (uint32_t, range, range)
+)
+
+
+struct LivoxPointXYZIRT {
+    PCL_ADD_POINT4D;
+    float intensity;
+    uint8_t tag;
+    uint8_t line;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+} EIGEN_ALIGN16;
+POINT_CLOUD_REGISTER_POINT_STRUCT (LivoxPointXYZIRT,
+(float, x, x) (float, y, y) (float, z, z) (float, intensity, intensity)
+(uint8_t, tag, tag)(uint8_t, line, line)
 )
 
 // Use the Velodyne point format as a common representation
@@ -68,6 +82,8 @@ private:
 
     pcl::PointCloud<PointXYZIRT>::Ptr laserCloudIn;
     pcl::PointCloud<OusterPointXYZIRT>::Ptr tmpOusterCloudIn;
+    pcl::PointCloud<LivoxPointXYZIRT>::Ptr tmpLivoxCloudIn;
+
     pcl::PointCloud<PointType>::Ptr   fullCloud;
     pcl::PointCloud<PointType>::Ptr   extractedCloud;
 
@@ -106,6 +122,7 @@ public:
     {
         laserCloudIn.reset(new pcl::PointCloud<PointXYZIRT>());
         tmpOusterCloudIn.reset(new pcl::PointCloud<OusterPointXYZIRT>());
+        tmpLivoxCloudIn.reset(new pcl::PointCloud<LivoxPointXYZIRT>());
         fullCloud.reset(new pcl::PointCloud<PointType>());
         extractedCloud.reset(new pcl::PointCloud<PointType>());
 
@@ -220,6 +237,23 @@ public:
                 dst.intensity = src.intensity;
                 dst.ring = src.ring;
                 dst.time = src.t * 1e-9f;
+            }
+        } else if (sensor == SensorType::LIVOX)
+        {
+            // Convert to Velodyne format
+            pcl::moveFromROSMsg(currentCloudMsg, *tmpLivoxCloudIn);
+            laserCloudIn->points.resize(tmpLivoxCloudIn->size());
+            laserCloudIn->is_dense = tmpLivoxCloudIn->is_dense;
+            for (size_t i = 0; i < tmpLivoxCloudIn->size(); i++)
+            {
+                auto &src = tmpLivoxCloudIn->points[i];
+
+                auto &dst = laserCloudIn->points[i];
+                dst.x = src.x;
+                dst.y = src.y;
+                dst.z = src.z;
+                dst.intensity = src.intensity;
+                dst.ring = src.line;
             }
         }
         else

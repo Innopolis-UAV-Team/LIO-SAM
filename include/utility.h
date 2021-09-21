@@ -57,7 +57,7 @@ using namespace std;
 
 typedef pcl::PointXYZI PointType;
 
-enum class SensorType { VELODYNE, OUSTER };
+enum class SensorType { VELODYNE, OUSTER, LIVOX };
 
 class ParamServer
 {
@@ -174,19 +174,24 @@ public:
 
         std::string sensorStr;
         nh.param<std::string>("lio_sam/sensor", sensorStr, "");
-        if (sensorStr == "velodyne")
-        {
+        bool _sensor_init_state = false;
+        if (sensorStr == "velodyne") {
             sensor = SensorType::VELODYNE;
+            _sensor_init_state = true;
         }
-        else if (sensorStr == "ouster")
-        {
+        if (sensorStr ==  "livox") {
+            sensor = SensorType::LIVOX;
+            _sensor_init_state = true;
+        }
+        if (sensorStr == "ouster") {
             sensor = SensorType::OUSTER;
+            _sensor_init_state = true;
         }
-        else
+        if (_sensor_init_state == false)
         {
-            ROS_ERROR_STREAM(
-                "Invalid sensor type (must be either 'velodyne' or 'ouster'): " << sensorStr);
-            ros::shutdown();
+                ROS_ERROR_STREAM(
+                        "Invalid sensor type (must be either 'velodyne', 'ouster' or 'livox'): " << sensorStr);
+                ros::shutdown();
         }
 
         nh.param<int>("lio_sam/N_SCAN", N_SCAN, 16);

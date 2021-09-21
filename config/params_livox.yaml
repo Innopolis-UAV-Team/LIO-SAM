@@ -1,7 +1,7 @@
 lio_sam:
 
   # Topics
-  pointCloudTopic: "livox/lidar"               # Point cloud data
+  pointCloudTopic: "/livox_pcl0"               # Point cloud data
   imuTopic: "mavros/imu/data"                         # IMU data
   odomTopic: "odometry/imu"                   # IMU pre-preintegration odometry, same frequency as IMU
   gpsTopic: "odometry/gpsz"                   # GPS odometry topic from navsat, see module_navsat.launch file
@@ -23,35 +23,40 @@ lio_sam:
   savePCDDirectory: "/Downloads/LOAM/"        # in your home folder, starts and ends with "/". Warning: the code deletes "LOAM" folder then recreates it. See "mapOptimization" for implementation
 
   # Sensor Settings
-  sensor: velodyne                            # lidar sensor type, either 'velodyne' or 'ouster'
-  N_SCAN: 1                                  # number of lidar channel (i.e., 16, 32, 64, 128)
-  Horizon_SCAN: 24000                          # lidar horizontal resolution (Velodyne:1800, Ouster:512,1024,2048)
-  downsampleRate: 2                           # default: 1. Downsample your data if too many points. i.e., 16 = 64 / 4, 16 = 16 / 1
+  sensor: livox                            # lidar sensor type, either 'velodyne' , 'ouster' or 'livox'
+  N_SCAN: 6                                  # number of lidar channel (i.e., 16, 32, 64, 128)
+  Horizon_SCAN: 4000                          # lidar horizontal resolution (Velodyne:1800, Ouster:512,1024,2048)
+  downsampleRate: 1                           # default: 1. Downsample your data if too many points. i.e., 16 = 64 / 4, 16 = 16 / 1
   lidarMinRange: 1.0                          # default: 1.0, minimum lidar range to be used
-  lidarMaxRange: 1000.0                       # default: 1000.0, maximum lidar range to be used
+  lidarMaxRange: 200.0                       # default: 1000.0, maximum lidar range to be used
 
   # IMU Settings
-  imuAccNoise: 0.01
-  imuGyrNoise: 0.01
-  imuAccBiasN: 0.005
-  imuGyrBiasN: 0.005
+  imuAccNoise: 0.001
+  imuGyrNoise: 0.001
+  imuAccBiasN: 0.0005
+  imuGyrBiasN: 0.0005
   imuGravity: 9.80511
   imuRPYWeight: 0.01
 
   # Extrinsics (lidar -> IMU)
+#  extrinsicTrans: [0.0, 0.0, 0.0]
+#  extrinsicRot: [0.998366, 0.0498418, -0.0279616,
+#                  -0.0479025, 0.996656, 0.0661959,
+#                  0.0311674, -0.0647483, 0.997415]
+#  extrinsicRPY: [0.9983656, 0.0479024, -0.0311675,
+#                 -0.0458084, 0.9968497, 0.0647483,
+#                  0.0341709, -0.0632148, 0.9974148]
+
+## drone lidar look at down
+#  extrinsicTrans: [-0.048, 0.0, 0.214]
   extrinsicTrans: [0.0, 0.0, 0.0]
-  extrinsicRot: [0.998366, 0.0498418, -0.0279616,
-                  -0.0479025, 0.996656, 0.0661959,
-                  0.0311674, -0.0647483, 0.997415]
-  extrinsicRPY: [0.9983656, 0.0479024, -0.0311675,
-                 -0.0458084, 0.9968497, 0.0647483,
-                  0.0341709, -0.0632148, 0.9974148]
-  #extrinsicRot: [1, 0, 0,
-  #                0, 1, 0,
-  #                0, 0, 1]
-  #extrinsicRPY: [1, 0, 0,
-  #                0, 1, 0,
-  #                0, 0, 1]
+  extrinsicRot: [0, 0, 1,
+                  0, 1, 0,
+                  -1, 0, 0]
+
+  extrinsicRPY: [0, 0, 1,
+                  0, 1, 0,
+                  -1, 0, 0]
 
   # LOAM feature threshold
   edgeThreshold: 1.0
@@ -60,9 +65,9 @@ lio_sam:
   surfFeatureMinValidNum: 100
 
   # voxel filter paprams
-  odometrySurfLeafSize: 0.2                     # default: 0.4 - outdoor, 0.2 - indoor
+  odometrySurfLeafSize: 0.1                     # default: 0.4 - outdoor, 0.2 - indoor
   mappingCornerLeafSize: 0.1                    # default: 0.2 - outdoor, 0.1 - indoor
-  mappingSurfLeafSize: 0.2                      # default: 0.4 - outdoor, 0.2 - indoor
+  mappingSurfLeafSize: 0.1                      # default: 0.4 - outdoor, 0.2 - indoor
 
   # robot motion constraint (in case you are using a 2D robot)
   z_tollerance: 1000                            # meters
@@ -73,8 +78,8 @@ lio_sam:
   mappingProcessInterval: 0.15                  # seconds, regulate mapping frequency
 
   # Surrounding map
-  surroundingkeyframeAddingDistThreshold: 0.2   # meters, regulate keyframe adding threshold
-  surroundingkeyframeAddingAngleThreshold: 0.1  # radians, regulate keyframe adding threshold
+  surroundingkeyframeAddingDistThreshold: 1.0   # meters, regulate keyframe adding threshold
+  surroundingkeyframeAddingAngleThreshold: 0.2  # radians, regulate keyframe adding threshold
   surroundingKeyframeDensity: 2.0               # meters, downsample surrounding keyframe poses   
   surroundingKeyframeSearchRadius: 50.0         # meters, within n meters scan-to-map optimization (when loop closure disabled)
 
